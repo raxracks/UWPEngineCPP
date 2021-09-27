@@ -28,7 +28,9 @@ public:
 
 	void Clear(Color color);
 	void Rect(float x, float y, float width, float height, Color color);
-	void Text(float x, float y, Platform::String^ text, float fontSize, Color color);
+	void UnfilledRect(float x, float y, float width, float height, Color color);
+	void Text(float x, float y, Platform::String^ text, float fontSize, Color color, CanvasHorizontalAlignment textAlignment, float width);
+	Windows::Foundation::Rect GetStringSizePX(Platform::String^ text, float fontSize, CanvasHorizontalAlignment textAlignment = CanvasHorizontalAlignment::Left);
 	void Ellipse(float x, float y, float radiusX, float radiusY, Color color);
 	void DrawBoundingBox(BoundingBox bBox);
 	void Line(float x1, float y1, float x2, float y2, Color color);
@@ -40,4 +42,7 @@ public:
 
 	BoundingBox CreateBoundingBox(float x, float y, float width, float height);
 	bool IntersectAABB(BoundingBox b1, BoundingBox b2);
+
+	void Engine::DeclareEndUpdate();
+	float Engine::CalculateDeltaTime();
 };

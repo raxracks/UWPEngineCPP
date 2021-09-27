@@ -1,4 +1,7 @@
 #include "Engine.h";
+#include <chrono>
+
+using namespace std::chrono;
 using namespace Windows::UI::Popups;
 using namespace Windows::Foundation;
 using namespace Microsoft::Graphics::Canvas::Text;
@@ -11,6 +14,8 @@ using namespace Microsoft::Graphics::Canvas::UI::Xaml;
 CanvasAnimatedControl^ cnvs;
 Grid^ grd;
 CanvasDrawingSession^ cds;
+milliseconds time1;
+milliseconds time2;
 
 bool DrawingSessionClosed()
 {
@@ -55,11 +60,80 @@ void Engine::Rect(float x, float y, float width, float height, Color color)
     cds->FillRectangle(x, y, width, height, color);
 }
 
-void Engine::Text(float x, float y, Platform::String^ text, float fontSize, Color color)
+void Engine::UnfilledRect(float x, float y, float width, float height, Color color)
 {
     if (DrawingSessionClosed()) return;
 
-    cds->DrawText(text, x, y, color);
+    cds->DrawRectangle(x, y, width, height, color);
+}
+
+float Engine::CalculateDeltaTime() {
+    time2 = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+
+    duration<float> difference = time2 - time1;
+    float dt = difference.count();
+
+    if (dt > 10) dt = 0;
+
+    return dt;
+}
+
+void Engine::DeclareEndUpdate() {
+    time1 = time2;
+}
+
+void Engine::Text(float x, float y, Platform::String^ text, float fontSize, Color color, CanvasHorizontalAlignment textAlignment, float width)
+{
+    if (DrawingSessionClosed()) return;
+
+    CanvasTextFormat^ format = ref new CanvasTextFormat();
+
+    format->FontSize = fontSize;
+    format->WordWrapping = CanvasWordWrapping::NoWrap;
+    format->HorizontalAlignment = textAlignment;
+
+    //CanvasTextFormat format = ref new CanvasTextFormat{ FontSize = fontSize, WordWrapping = CanvasWordWrapping.NoWrap, HorizontalAlignment = textAlignment };
+
+    Windows::Foundation::Rect rect;
+    rect.X = x;
+    rect.Y = y;
+    rect.Width = width;
+
+    if (width < -1)
+    {
+        switch (textAlignment)
+        {
+        case CanvasHorizontalAlignment::Center:
+            rect.X = x + (width / 2) - (GetStringSizePX(text, fontSize, textAlignment).Width / 2);
+            break;
+
+        case CanvasHorizontalAlignment::Right:
+            rect.X = x + width - GetStringSizePX(text, fontSize, textAlignment).Width;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    cds->DrawText(text, x, y, color, format);
+}
+
+Windows::Foundation::Rect Engine::GetStringSizePX(Platform::String^ text, float fontSize, CanvasHorizontalAlignment textAlignment = CanvasHorizontalAlignment::Left)
+{
+    if (DrawingSessionClosed()) return Rect();
+
+    CanvasTextFormat^ format = ref new CanvasTextFormat;
+    format->FontSize = fontSize;
+    format->WordWrapping = CanvasWordWrapping::NoWrap;
+    format->HorizontalAlignment = textAlignment;
+
+    CanvasTextLayout^ textLayout = ref new CanvasTextLayout(cds, text, format, 0.0f, 0.0f);
+    textLayout->WordWrapping = CanvasWordWrapping::NoWrap;
+
+    Rect rect = textLayout->LayoutBounds;
+
+    return rect;
 }
 
 void Engine::Ellipse(float x, float y, float radiusX, float radiusY, Color color) 

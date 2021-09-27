@@ -11,6 +11,9 @@
     <Filter Include="Assets\GameAssets">
       <UniqueIdentifier>{12da2537-3ee4-425c-93da-1b5c0a765937}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\GameAssets\GamepadIcons">
+      <UniqueIdentifier>{3dd78b53-484e-41d4-b2c7-1e469b31fd10}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
@@ -48,6 +51,18 @@
     </Image>
     <Image Include="Assets\GameAssets\cookie.png">
       <Filter>Assets\GameAssets</Filter>
+    </Image>
+    <Image Include="Assets\GameAssets\GamepadIcons\A.png">
+      <Filter>Assets\GameAssets\GamepadIcons</Filter>
+    </Image>
+    <Image Include="Assets\GameAssets\GamepadIcons\B.png">
+      <Filter>Assets\GameAssets\GamepadIcons</Filter>
+    </Image>
+    <Image Include="Assets\GameAssets\GamepadIcons\X.png">
+      <Filter>Assets\GameAssets\GamepadIcons</Filter>
+    </Image>
+    <Image Include="Assets\GameAssets\GamepadIcons\Y.png">
+      <Filter>Assets\GameAssets\GamepadIcons</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

@@ -194,6 +194,10 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\GameAssets\cookie.png" />
+    <Image Include="Assets\GameAssets\GamepadIcons\A.png" />
+    <Image Include="Assets\GameAssets\GamepadIcons\B.png" />
+    <Image Include="Assets\GameAssets\GamepadIcons\X.png" />
+    <Image Include="Assets\GameAssets\GamepadIcons\Y.png" />
     <Image Include="Assets\LockScreenLogo.scale-200.png" />
     <Image Include="Assets\SplashScreen.scale-200.png" />
     <Image Include="Assets\Square150x150Logo.scale-200.png" />
