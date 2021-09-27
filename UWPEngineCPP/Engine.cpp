@@ -119,9 +119,9 @@ void Engine::Text(float x, float y, Platform::String^ text, float fontSize, Colo
     cds->DrawText(text, x, y, color, format);
 }
 
-Windows::Foundation::Rect Engine::GetStringSizePX(Platform::String^ text, float fontSize, CanvasHorizontalAlignment textAlignment = CanvasHorizontalAlignment::Left)
+Windows::Foundation::Rect Engine::GetStringSizePX(Platform::String^ text, float fontSize, CanvasHorizontalAlignment textAlignment)
 {
-    if (DrawingSessionClosed()) return Rect();
+    if (DrawingSessionClosed()) return Windows::Foundation::Rect();
 
     CanvasTextFormat^ format = ref new CanvasTextFormat;
     format->FontSize = fontSize;
@@ -131,7 +131,7 @@ Windows::Foundation::Rect Engine::GetStringSizePX(Platform::String^ text, float 
     CanvasTextLayout^ textLayout = ref new CanvasTextLayout(cds, text, format, 0.0f, 0.0f);
     textLayout->WordWrapping = CanvasWordWrapping::NoWrap;
 
-    Rect rect = textLayout->LayoutBounds;
+    Windows::Foundation::Rect rect = textLayout->LayoutBounds;
 
     return rect;
 }

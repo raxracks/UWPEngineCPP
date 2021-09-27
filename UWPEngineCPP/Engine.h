@@ -29,7 +29,7 @@ public:
 	void Clear(Color color);
 	void Rect(float x, float y, float width, float height, Color color);
 	void UnfilledRect(float x, float y, float width, float height, Color color);
-	void Text(float x, float y, Platform::String^ text, float fontSize, Color color, CanvasHorizontalAlignment textAlignment, float width);
+	void Text(float x, float y, Platform::String^ text, float fontSize, Color color, CanvasHorizontalAlignment textAlignment = CanvasHorizontalAlignment::Left, float width = -1);
 	Windows::Foundation::Rect GetStringSizePX(Platform::String^ text, float fontSize, CanvasHorizontalAlignment textAlignment = CanvasHorizontalAlignment::Left);
 	void Ellipse(float x, float y, float radiusX, float radiusY, Color color);
 	void DrawBoundingBox(BoundingBox bBox);
