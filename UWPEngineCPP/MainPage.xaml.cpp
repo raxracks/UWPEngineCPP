@@ -7,6 +7,7 @@
 #include "MainPage.xaml.h"
 #include <Engine.h>
 #include <timercpp.h>
+using namespace Windows::Gaming::Input;
 
 using namespace std::chrono;
 using namespace Windows::UI::Popups;
@@ -47,8 +48,6 @@ Engine::BoundingBox spriteBoundingBox;
 Engine::BoundingBox objectBoundingBox;
 /*           End of bounding boxes              */
 
-Timer timer;
-
 float deltaTime;
 
 MainPage::MainPage()
@@ -60,16 +59,20 @@ MainPage::MainPage()
 
 void UWPEngine::MainPage::canvas_CreateResources(Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::CanvasCreateResourcesEventArgs^ args)
 {
-	timer.setInterval([&]() {
-		fps = frameCount;
-		frameCount = 0;
-	}, 1000);
-
+	/*                  Textures                    */
 	aButtonTexture = engine.GenerateTexture("Assets/GameAssets/GamepadIcons/A.png");
 	bButtonTexture = engine.GenerateTexture("Assets/GameAssets/GamepadIcons/B.png");
 	xButtonTexture = engine.GenerateTexture("Assets/GameAssets/GamepadIcons/X.png");
 	yButtonTexture = engine.GenerateTexture("Assets/GameAssets/GamepadIcons/Y.png");
 	spriteTexture = engine.GenerateTexture("Assets/GameAssets/cookie.png");
+	/*              End of textures                 */
+
+	// FPS Calculations
+	Timer timer;
+	timer.setInterval([&]() {
+		fps = frameCount;
+		frameCount = 0;
+	}, 1000);
 }
 
 void UWPEngine::MainPage::canvas_Draw(Microsoft::Graphics::Canvas::UI::Xaml::ICanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedDrawEventArgs^ args)
@@ -80,11 +83,14 @@ void UWPEngine::MainPage::canvas_Draw(Microsoft::Graphics::Canvas::UI::Xaml::ICa
 	// Clear rendering area with specified color
 	engine.Clear(Colors::CornflowerBlue);
 
+	// Draw text
+	engine.Text(10, 10, "Hello World!", 50, Colors::Black);
+
 	// Draw a textured rectangle
 	engine.TexturedRect(aButtonTexture, 10, 90, 30, 30);
 
 	// Draw an unfilled rectangle
-	engine.UnfilledRect(10, 140, 100, 50, Colors::Black);
+	engine.UnfilledRect(10, 140, 100, 50, Colors::Black, 5, 10);
 
 	// Draw n unfilled rectangle
 	engine.Rect(120, 140, 100, 50, Colors::Orange);
@@ -94,9 +100,8 @@ void UWPEngine::MainPage::canvas_Draw(Microsoft::Graphics::Canvas::UI::Xaml::ICa
 	engine.Rect(objectX, objectY, 200, 20, Colors::Green);
 
 	// Display FPS
-	engine.Text(10, 10, "FPS: " + fps, 25, Colors::Black);
-
-	engine.Text(10, 30, "Deltatime: " + deltaTime, 25, Colors::Black);
+	Rect FPSRect = engine.GetStringSizePX("FPS: " + fps, 25, CanvasHorizontalAlignment::Right);
+	engine.Text((float)sender->Size.Width - (float)FPSRect.Width, (float)sender->Size.Height - (float)FPSRect.Height, "FPS: " + fps, 25, Colors::Black);
 
 	// Increment frame count for FPS calculations
 	frameCount++;
@@ -105,27 +110,43 @@ void UWPEngine::MainPage::canvas_Draw(Microsoft::Graphics::Canvas::UI::Xaml::ICa
 
 void UWPEngine::MainPage::canvas_Update(Microsoft::Graphics::Canvas::UI::Xaml::ICanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedUpdateEventArgs^ args)
 {
-    // Deltatime Calculations
+    // Calculate deltaTime
 	deltaTime = engine.CalculateDeltaTime();
 
     // Check if colliding 
     if (engine.IntersectAABB(spriteBoundingBox, objectBoundingBox))
     {
         // Stop sprite from falling through object (newton's third law)
-        spriteY -= 50 * deltaTime;
+        spriteY -= 100 * deltaTime;
     }
 
     // Controls
+	if (engine.GetGamepad().DPadRight)
+	{
+		spriteX += 100 * deltaTime;
+	}
+
+	if (engine.GetGamepad().DPadLeft)
+	{
+		spriteX -= 100 * deltaTime;
+	}
+
+	if (engine.GetGamepad().DPadUp)
+	{
+		spriteY -= 200 * deltaTime;
+	}
+
+	if (engine.GetGamepad().DPadDown)
+	{
+		spriteY += 100 * deltaTime;
+	}
 
     // Super simple "gravity" on the sprite
-    spriteY += 50 * deltaTime;
+    spriteY += 100 * deltaTime;
 
     // Draw sprite and create a bounding box for it
     spriteBoundingBox = engine.CreateBoundingBox(spriteX, spriteY, 50, 50);
 
     // Draw an object to stop the sprite from falling and create a bounding box for it
     objectBoundingBox = engine.CreateBoundingBox(objectX, objectY, 200, 20);
-
-    // Deltatime calculations
-	engine.DeclareEndUpdate();
 }
