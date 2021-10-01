@@ -19,13 +19,14 @@
     <ApplicationDefinition Include="App.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="AsceneEngine.cpp" />
     <ClCompile Include="pch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Engine.h" />
+    <ClInclude Include="AsceneEngine.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="timercpp.h" />
+    <ClInclude Include="pender_ui.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png">
@@ -63,6 +64,12 @@
     </Image>
     <Image Include="Assets\GameAssets\GamepadIcons\Y.png">
       <Filter>Assets\GameAssets\GamepadIcons</Filter>
+    </Image>
+    <Image Include="Assets\triangle.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\upside_down_triangle.png">
+      <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

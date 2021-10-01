@@ -5,13 +5,14 @@
 
 #include "pch.h"
 #include "MainPage.xaml.h"
-#include <Engine.h>
 #include <timercpp.h>
-using namespace Windows::Gaming::Input;
+#include <AsceneEngine.h>
+#include <pender_ui.h>
 
+using namespace Windows::Gaming::Input;
 using namespace std::chrono;
 using namespace Windows::UI::Popups;
-using namespace UWPEngine;
+using namespace EngineExample;
 using namespace Windows::UI;
 using namespace Platform;
 using namespace Windows::Foundation;
@@ -25,7 +26,9 @@ using namespace Windows::UI::Xaml::Media;
 using namespace Windows::UI::Xaml::Navigation;
 using namespace Windows::UI::Input;
 
-Engine engine;
+AsceneEngine engine;
+
+Pender pender;
 
 int frameCount = 0;
 int fps = 0;
@@ -35,29 +38,44 @@ float spriteY = -10;
 float objectX = 450;
 float objectY = 120;
 
+float mouseX = 0;
+float mouseY = 0;
+
+bool mouseDown = false;
+
+float totalLogTime = 0;
+
 /*                  Textures                    */
-Engine::EngineTexture aButtonTexture;
-Engine::EngineTexture bButtonTexture;
-Engine::EngineTexture xButtonTexture;
-Engine::EngineTexture yButtonTexture;
-Engine::EngineTexture spriteTexture;
+AsceneEngine::EngineTexture aButtonTexture;
+AsceneEngine::EngineTexture bButtonTexture;
+AsceneEngine::EngineTexture xButtonTexture;
+AsceneEngine::EngineTexture yButtonTexture;
+AsceneEngine::EngineTexture spriteTexture;
 /*              End of textures                 */
 
 /*              Bounding Boxes                  */
-Engine::BoundingBox spriteBoundingBox;
-Engine::BoundingBox objectBoundingBox;
+AsceneEngine::BoundingBox spriteBoundingBox;
+AsceneEngine::BoundingBox objectBoundingBox;
 /*           End of bounding boxes              */
 
+Timer timer;
+
+std::vector<AsceneEngine::InformerData> logCopy;
+
+Size renderingSize;
+
 float deltaTime;
+
+bool debugging = false;
 
 MainPage::MainPage()
 {
 	InitializeComponent();
 
-	engine = Engine(canvas, grid);
+	engine = AsceneEngine(canvas, grid);
 }
 
-void UWPEngine::MainPage::canvas_CreateResources(Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::CanvasCreateResourcesEventArgs^ args)
+void EngineExample::MainPage::canvas_CreateResources(Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::CanvasCreateResourcesEventArgs^ args)
 {
 	/*                  Textures                    */
 	aButtonTexture = engine.GenerateTexture("Assets/GameAssets/GamepadIcons/A.png");
@@ -68,50 +86,103 @@ void UWPEngine::MainPage::canvas_CreateResources(Microsoft::Graphics::Canvas::UI
 	/*              End of textures                 */
 
 	// FPS Calculations
-	Timer timer;
 	timer.setInterval([&]() {
 		fps = frameCount;
 		frameCount = 0;
 	}, 1000);
+
+	Pender::UIConfig config;
+	config.fontSize = 15;
+	config.padding = 8;
+	config.titleFontSize = 12;
+	config.windowRadius = 5;
+	config.closeIconPadding = 20;
+
+	Pender::ColorScheme scheme;
+	scheme.windowBgColor = engine.ARGB(255, 21, 22, 23);
+	scheme.textColor = Colors::White;
+	scheme.titleColor = engine.ARGB(255, 41, 74, 122);
+
+	pender.Init(engine, config, scheme);
 }
 
-void UWPEngine::MainPage::canvas_Draw(Microsoft::Graphics::Canvas::UI::Xaml::ICanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedDrawEventArgs^ args)
+void EngineExample::MainPage::canvas_Draw(Microsoft::Graphics::Canvas::UI::Xaml::ICanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedDrawEventArgs^ args)
 {
+	renderingSize = sender->Size;
+
 	// Update drawing session
 	engine.SetDrawingSession(args->DrawingSession);
 
-	// Clear rendering area with specified color
-	engine.Clear(Colors::CornflowerBlue);
+	if (debugging) {
+		engine.Clear(Colors::White);
 
-	// Draw text
-	engine.Text(10, 10, "Hello World!", 50, Colors::Black);
+		float x = 0;
+		float y = 0;
 
-	// Draw a textured rectangle
-	engine.TexturedRect(aButtonTexture, 10, 90, 30, 30);
+		for (AsceneEngine::InformerData d : logCopy) {
+			if (d.State == AsceneEngine::InformerState::ProcessFinish) {
+				long long time = (d.StopTime - d.StartTime).count();
+				float width = time + engine.GetStringSizePX(d.ProcessName, 10).Width;
 
-	// Draw an unfilled rectangle
-	engine.UnfilledRect(10, 140, 100, 50, Colors::Black, 5, 10);
+				if (x + width > renderingSize.Width) {
+					x = 0;
+					y += 41;
+				}
 
-	// Draw n unfilled rectangle
-	engine.Rect(120, 140, 100, 50, Colors::Orange);
+				engine.Rect(x, y, width, 40, Colors::Black);
+				engine.Text(x, y, d.ProcessName, 10, Colors::White);
+				engine.Text(x, y + 20, time.ToString() + "MiS", 10, Colors::White);
+				x += width + 1;
 
-	// Draw sprite and floor
-	engine.TexturedRect(spriteTexture, spriteX, spriteY, 50, 50);
-	engine.Rect(objectX, objectY, 200, 20, Colors::Green);
+				if (x > renderingSize.Width) {
+					x = 0;
+					y += 41;
+				}
+			}
+		}
+	}
+	else {
 
-	// Display FPS
-	Rect FPSRect = engine.GetStringSizePX("FPS: " + fps, 25, CanvasHorizontalAlignment::Right);
-	engine.Text((float)sender->Size.Width - (float)FPSRect.Width, (float)sender->Size.Height - (float)FPSRect.Height, "FPS: " + fps, 25, Colors::Black);
+		// Clear rendering area with specified color
+		engine.Clear(Colors::CornflowerBlue);
 
-	// Increment frame count for FPS calculations
-	frameCount++;
+		// Draw text
+		engine.Text(10, 10, "Hello World!", 50, Colors::Black);
+
+		// Draw a textured rectangle
+		engine.TexturedRect(aButtonTexture, 10, 90, 30, 30);
+
+		// Draw an unfilled rectangle
+		engine.UnfilledRect(10, 140, 100, 50, Colors::Black, 5, 10);
+
+		// Draw a filled rectangle
+		engine.Rect(120, 140, 100, 50, Colors::Orange);
+
+		// Draw sprite and floor
+		engine.TexturedRect(spriteTexture, spriteX, spriteY, 50, 50);
+		engine.Rect(objectX, objectY, 200, 20, Colors::Green);
+
+		// Display FPS
+		Rect FPSRect = engine.GetStringSizePX("FPS: " + fps, 25, CanvasHorizontalAlignment::Right);
+		engine.Text((float)renderingSize.Width - (float)FPSRect.Width, (float)renderingSize.Height - (float)FPSRect.Height, "FPS: " + fps, 25, Colors::Black);
+
+		// Increment frame count for FPS calculations
+		frameCount++;
+	}
+
+	pender.Begin("window title bruh momento numero dos");
+	pender.Text("hi");
+	pender.Text("more text bla bla bla bla");
+	pender.End();
 }
 
 
-void UWPEngine::MainPage::canvas_Update(Microsoft::Graphics::Canvas::UI::Xaml::ICanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedUpdateEventArgs^ args)
+void EngineExample::MainPage::canvas_Update(Microsoft::Graphics::Canvas::UI::Xaml::ICanvasAnimatedControl^ sender, Microsoft::Graphics::Canvas::UI::Xaml::CanvasAnimatedUpdateEventArgs^ args)
 {
     // Calculate deltaTime
 	deltaTime = engine.CalculateDeltaTime();
+
+	pender.UpdateMouse(mouseX, mouseY, mouseDown);
 
     // Check if colliding 
     if (engine.IntersectAABB(spriteBoundingBox, objectBoundingBox))
@@ -149,4 +220,35 @@ void UWPEngine::MainPage::canvas_Update(Microsoft::Graphics::Canvas::UI::Xaml::I
 
     // Draw an object to stop the sprite from falling and create a bounding box for it
     objectBoundingBox = engine.CreateBoundingBox(objectX, objectY, 200, 20);
+}
+
+/*void EngineExample::MainPage::grid_PointerPressed(Platform::Object^ sender, Windows::UI::Xaml::Input::PointerRoutedEventArgs^ e)
+{
+	logCopy = AsceneEngine::Debug::GetLog();
+
+	debugging = true;
+
+	//engine.Rect(0, renderingSize.Height - 100, renderingSize.Width, 100, Colors::White);
+
+	//engine.StopEngine();
+}*/
+
+
+void EngineExample::MainPage::canvas_PointerMoved(Platform::Object^ sender, Windows::UI::Xaml::Input::PointerRoutedEventArgs^ e)
+{
+	PointerPoint^ p = e->GetCurrentPoint(canvas);
+	mouseX = p->Position.X;
+	mouseY = p->Position.Y;
+}
+
+
+void EngineExample::MainPage::canvas_PointerPressed(Platform::Object^ sender, Windows::UI::Xaml::Input::PointerRoutedEventArgs^ e)
+{
+	mouseDown = true;
+}
+
+
+void EngineExample::MainPage::canvas_PointerReleased(Platform::Object^ sender, Windows::UI::Xaml::Input::PointerRoutedEventArgs^ e)
+{
+	mouseDown = false;
 }

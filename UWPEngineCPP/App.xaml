@@ -1,7 +1,7 @@
 ﻿<Application
-    x:Class="UWPEngine.App"
+    x:Class="EngineExample.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:UWPEngine">
+    xmlns:local="using:EngineExample">
 
 </Application>
