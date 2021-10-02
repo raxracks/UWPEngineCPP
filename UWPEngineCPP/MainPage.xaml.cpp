@@ -222,17 +222,6 @@ void EngineExample::MainPage::canvas_Update(Microsoft::Graphics::Canvas::UI::Xam
     objectBoundingBox = engine.CreateBoundingBox(objectX, objectY, 200, 20);
 }
 
-/*void EngineExample::MainPage::grid_PointerPressed(Platform::Object^ sender, Windows::UI::Xaml::Input::PointerRoutedEventArgs^ e)
-{
-	logCopy = AsceneEngine::Debug::GetLog();
-
-	debugging = true;
-
-	//engine.Rect(0, renderingSize.Height - 100, renderingSize.Width, 100, Colors::White);
-
-	//engine.StopEngine();
-}*/
-
 
 void EngineExample::MainPage::canvas_PointerMoved(Platform::Object^ sender, Windows::UI::Xaml::Input::PointerRoutedEventArgs^ e)
 {

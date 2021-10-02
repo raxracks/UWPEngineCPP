@@ -63,6 +63,8 @@ public:
 
 	bool dragging_window_previous = false;
 
+	bool mouse_over = false;
+
 	float window_x = 0;
 	float window_y = 0;
 
@@ -157,7 +159,7 @@ public:
 					e.Rect(currentWindow.x + el.x, currentWindow.y + el.y, currentWindow.width, el.height, colorScheme.titleColor, config.windowRadius);
 					if(!collapsed) e.Rect(currentWindow.x + el.x, currentWindow.y + el.y + el.height / 2, currentWindow.width, el.height / 2, colorScheme.titleColor);
 
-					titleBarBoundingBox = e.CreateBoundingBox(currentWindow.x + el.x, currentWindow.y + el.y, currentWindow.width, titleBarHeight);
+					if(!mouse_over) titleBarBoundingBox = e.CreateBoundingBox(currentWindow.x + el.x, currentWindow.y + el.y, currentWindow.width, titleBarHeight);
 					break;
 
 				case UIElementType::TITLEBAR_TRIANGLE:
@@ -174,7 +176,6 @@ public:
 			}
 		}
 
-		CheckMouse();
 		CloseIcon();
 	}
 
@@ -183,7 +184,11 @@ public:
 		mouse_y = y;
 		mouse_down = down;
 
-		mouseBoundingBox = e.CreateBoundingBox(mouse_x, mouse_y, 20, 20);
+		mouseBoundingBox = e.CreateBoundingBox(mouse_x, mouse_y, 1, 1);
+
+		if(mouse_x > window_x && mouse_x < window_x + currentWindow.width && mouse_y > currentWindow.y && mouse_x < currentWindow.y + currentWindow.height && mouse_down || e.IntersectAABB(mouseBoundingBox, titleBarBoundingBox) && mouse_down) titleBarBoundingBox = e.CreateBoundingBox(mouse_x - 1000, mouse_y - 1000, 2000, 2000);
+
+		CheckMouse();
 	};
 
 	void CheckMouse() {
@@ -196,14 +201,22 @@ public:
 				locked_mouse_y = currentWindow.y - mouse_y;
 			}
 
+			mouse_over = true;
+
 			dragging_window_previous = true;
 
 			window_x = mouse_x + locked_mouse_x;
 			window_y = mouse_y + locked_mouse_y;
+
+			currentWindow.x = window_x;
+			currentWindow.y = window_y;
+
+			mouse_down_previous = true;
 		}
 		else {
 			dragging_window_previous = false;
 			mouse_down_previous = false;
+			mouse_over = false;
 		}
 	}
 
